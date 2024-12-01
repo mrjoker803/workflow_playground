@@ -10,20 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         compiler: [msvc, clang-cl]
-        include:
-          - compiler: msvc
-            toolset: msvc143
-            arch: x64
-          - compiler: clang-cl
-            toolset: msvc143
-            arch: x64
 
     steps:
       - name: Setup Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
-        with:
-          toolset: ${{ matrix.toolset }}
-          arch: ${{ matrix.arch }}
 
       - uses: actions/checkout@v4
         with:
