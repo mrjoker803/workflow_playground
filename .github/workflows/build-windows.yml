@@ -12,15 +12,18 @@ jobs:
         compiler: [msvc, clang-cl]
         include:
           - compiler: msvc
-            toolset: 19.29
+            toolset: msvc143
+            arch: x64
           - compiler: clang-cl
-            toolset: ClangCL
+            toolset: msvc143
+            arch: x64
 
     steps:
       - name: Setup Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: ${{ matrix.toolset }}
+          arch: ${{ matrix.arch }}
 
       - uses: actions/checkout@v4
         with:
