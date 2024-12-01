@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [msvc, clang-cl]
+        compiler: [msvc, clang]
 
     steps:
       - name: Setup Developer Command Prompt
@@ -22,7 +22,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake --preset windows-${{ matrix.compiler }}-debug
+          cmake --preset windows-${{ matrix.compiler }}-debug-user-mode
         env:
           VCPKG_ROOT: C:\vcpkg
 
