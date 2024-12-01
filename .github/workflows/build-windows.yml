@@ -12,7 +12,7 @@ jobs:
         compiler: [msvc, clang-cl]
         include:
           - compiler: msvc
-            toolset: v143
+            toolset: 19.29
           - compiler: clang-cl
             toolset: ClangCL
 
