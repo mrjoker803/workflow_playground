@@ -1,0 +1,38 @@
+name: build-windows
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [msvc, clang-cl]
+        include:
+          - compiler: msvc
+            toolset: v143
+          - compiler: clang-cl
+            toolset: ClangCL
+
+    steps:
+      - name: Setup Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: ${{ matrix.toolset }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Configure CMake
+        run: |
+          cmake --preset windows-${{ matrix.compiler }}-debug
+        env:
+          VCPKG_ROOT: C:\vcpkg
+
+      - name: Build
+        run: |
+          cmake --build build/windows-${{ matrix.compiler }}-debug
