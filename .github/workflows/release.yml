@@ -1,0 +1,152 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        compiler: [msvc]
+        include:
+          - compiler: msvc
+            preset: windows-msvc-release
+
+    steps:
+      - name: Setup Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake --preset ${{ matrix.preset }}
+        env:
+          VCPKG_ROOT: C:\vcpkg
+
+      - name: Build
+        run: cmake --build build/${{ matrix.preset }} --config Release
+
+      - name: Package
+        run: |
+          cd build/${{ matrix.preset }}
+          cpack -G NSIS
+          cpack -G ZIP
+
+      - name: Upload ZIP Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./build/${{ matrix.preset }}/*-win64.zip
+          asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64.zip
+          asset_content_type: application/zip
+
+      - name: Upload NSIS Installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./build/${{ matrix.preset }}/*-win64.exe
+          asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64-setup.exe
+          asset_content_type: application/octet-stream
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        compiler: [gcc]
+        include:
+          - compiler: gcc
+            version: 13
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git curl wget tar zip unzip cmake pkg-config
+          sudo apt-get install -y gcc-${{ matrix.version }} g++-${{ matrix.version }}
+          sudo apt-get install -y rpm
+
+      - uses: actions/checkout@v4
+
+      - name: Setup vcpkg
+        run: |
+          if [ ! -d ~/vcpkg ]; then
+            git clone https://github.com/microsoft/vcpkg.git ~/vcpkg
+            ~/vcpkg/bootstrap-vcpkg.sh
+          fi
+          ~/vcpkg/vcpkg integrate install
+          echo "VCPKG_ROOT=~/vcpkg" >> $GITHUB_ENV
+
+      - name: Configure CMake
+        run: cmake --preset unixlike-${{ matrix.compiler }}-release
+
+      - name: Build
+        run: cmake --build build/unixlike-${{ matrix.compiler }}-release --config Release
+
+      - name: Package
+        run: |
+          cd build/unixlike-${{ matrix.compiler }}-release
+          cpack -G DEB
+          cpack -G RPM
+          cpack -G TGZ
+
+      - name: Upload DEB Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/*_amd64.deb
+          asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}_amd64.deb
+          asset_content_type: application/vnd.debian.binary-package
+
+      - name: Upload RPM Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/*.x86_64.rpm
+          asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}.x86_64.rpm
+          asset_content_type: application/x-rpm
+
+      - name: Upload TGZ Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/*-Linux.tar.gz
+          asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-linux-x86_64.tar.gz
+          asset_content_type: application/gzip
