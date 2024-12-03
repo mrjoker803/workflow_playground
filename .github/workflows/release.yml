@@ -5,29 +5,8 @@ on:
       - 'v*.*.*'
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.version }}
-    steps:
-      - name: Get version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
   build-windows:
-    needs: create-release
+    needs: []
     runs-on: windows-2022
     strategy:
       matrix:
@@ -80,7 +59,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   build-linux:
-    needs: create-release
+    needs: []
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -150,3 +129,22 @@ jobs:
           asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.tar.gz
           asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.tar.gz
           asset_content_type: application/gzip
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
