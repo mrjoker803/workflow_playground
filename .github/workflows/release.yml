@@ -106,8 +106,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.deb
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.deb
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.deb
+          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.deb
           asset_content_type: application/vnd.debian.binary-package
 
       - name: Upload RPM Package
@@ -116,8 +116,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.rpm
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.rpm
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.rpm
+          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.rpm
           asset_content_type: application/x-rpm
 
       - name: Upload TGZ Package
@@ -126,8 +126,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.tar.gz
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-x86_64.tar.gz
+          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.tar.gz
+          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.tar.gz
           asset_content_type: application/gzip
 
   create-release:
