@@ -65,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/${{ matrix.preset }}/libzero-${{ needs.create-release.outputs.version }}-win64.zip
+          asset_path: ./build/${{ matrix.preset }}/${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64.zip
           asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64.zip
           asset_content_type: application/zip
 
@@ -75,7 +75,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/${{ matrix.preset }}/libzero-${{ needs.create-release.outputs.version }}-win64-setup.exe
+          asset_path: ./build/${{ matrix.preset }}/${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64.exe
           asset_name: ${{ github.event.repository.name }}-${{ needs.create-release.outputs.version }}-win64-setup.exe
           asset_content_type: application/octet-stream
 
