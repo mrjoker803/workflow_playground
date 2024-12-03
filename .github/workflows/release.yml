@@ -6,23 +6,21 @@ on:
 
 jobs:
   build-windows:
-    needs: []
     runs-on: windows-2022
-    strategy:
-      matrix:
-        compiler: [msvc]
-        include:
-          - compiler: msvc
-            preset: windows-msvc-release
-
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${env:GITHUB_REF_NAME.substring(1)}" >> $env:GITHUB_OUTPUT
+
       - name: Setup Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install NSIS
         run: choco install nsis -y
-
-      - uses: actions/checkout@v4
 
       - name: Configure CMake
         run: cmake --preset ${{ matrix.preset }}
@@ -38,45 +36,29 @@ jobs:
           cpack -G NSIS
           cpack -G ZIP
 
-      - name: Upload ZIP Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/${{ matrix.preset }}/libzero-${{ needs.create-release.outputs.version }}-win64.zip
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-win64.zip
-          asset_content_type: application/zip
-
-      - name: Upload NSIS Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/${{ matrix.preset }}/libzero-${{ needs.create-release.outputs.version }}-win64.exe
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-win64-setup.exe
-          asset_content_type: application/octet-stream
+          name: windows-packages
+          path: |
+            ./build/${{ matrix.preset }}/libzero-${{ steps.get_version.outputs.version }}-win64.zip
+            ./build/${{ matrix.preset }}/libzero-${{ steps.get_version.outputs.version }}-win64.exe
 
   build-linux:
-    needs: []
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        compiler: [gcc]
-        include:
-          - compiler: gcc
-            version: 13
-
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git curl wget tar zip unzip cmake pkg-config
           sudo apt-get install -y gcc-${{ matrix.version }} g++-${{ matrix.version }}
           sudo apt-get install -y rpm
-
-      - uses: actions/checkout@v4
 
       - name: Setup vcpkg
         run: |
@@ -100,43 +82,23 @@ jobs:
           cpack -G RPM
           cpack -G TGZ
 
-      - name: Upload DEB Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.deb
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
+          name: linux-packages
+          path: |
+            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.deb
+            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.rpm
+            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz
 
-      - name: Upload RPM Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.rpm
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.rpm
-          asset_content_type: application/x-rpm
-
-      - name: Upload TGZ Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ needs.create-release.outputs.version }}-linux-amd64.tar.gz
-          asset_name: libzero-${{ needs.create-release.outputs.version }}-linux-amd64.tar.gz
-          asset_content_type: application/gzip
-
-  create-release:
+  create-and-upload:
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
-      - name: Get version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Create Release
         id: create_release
@@ -148,3 +110,12 @@ jobs:
           release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/windows-packages/*
+            artifacts/linux-packages/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
