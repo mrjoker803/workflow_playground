@@ -7,6 +7,12 @@ on:
 jobs:
   build-windows:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        compiler: [msvc]
+        include:
+          - compiler: msvc
+            preset: windows-msvc-release
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
@@ -46,6 +52,12 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        compiler: [gcc]
+        include:
+          - compiler: gcc
+            version: 13
     steps:
       - uses: actions/checkout@v4
 
