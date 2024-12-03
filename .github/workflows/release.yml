@@ -20,7 +20,10 @@ jobs:
       
       - name: Get version from tag
         id: get_version
-        run: echo "version=${env:GITHUB_REF_NAME.substring(1)}" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v',''
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
@@ -58,12 +61,14 @@ jobs:
         include:
           - compiler: gcc
             version: 13
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Get version from tag
         id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
         run: |
@@ -119,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
+          release_name: Release ${{ needs.build-windows.outputs.version }}
           draft: false
           prerelease: false
 
