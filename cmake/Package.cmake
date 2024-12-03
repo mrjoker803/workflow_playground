@@ -11,6 +11,18 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
+# Set system name and architecture globally
+if(WIN32)
+  set(CPACK_SYSTEM_NAME "win64")
+else()
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+  set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+  set(CPACK_SYSTEM_NAME "linux-x86_64")
+endif()
+
+# Use consistent naming across all package types
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${CPACK_SYSTEM_NAME}")
+
 # Platform-specific configurations
 if(WIN32)
   # Windows-specific settings
@@ -29,16 +41,14 @@ else()
   set(CPACK_GENERATOR "DEB;RPM;TGZ")
 
   # DEB specific
-  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
   set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
   set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-  set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT) # Use standardized naming
+  set(CPACK_DEBIAN_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
 
   # RPM specific
-  set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
   set(CPACK_RPM_PACKAGE_LICENSE "MIT")
   set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
-  set(CPACK_RPM_FILE_NAME RPM-DEFAULT) # Use standardized naming
+  set(CPACK_RPM_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}.${CPACK_RPM_PACKAGE_ARCHITECTURE}.rpm")
 
   # Set compression type for TGZ
   set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
