@@ -18,7 +18,4 @@ if(UNIX)
   install(CODE "execute_process(COMMAND ldconfig)")
 endif()
 
-set(CPACK_PACKAGE_VENDOR "Genci Berisha")
-set(CPACK_PACKAGE_CONTACT "me@genciberisha.dev")
-set(CPACK_PACKAGE_DESCRIPTION "Library in C++23")
 include(CPack)

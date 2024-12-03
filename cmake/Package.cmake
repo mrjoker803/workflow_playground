@@ -1,7 +1,7 @@
 # Basic package information
 set(CPACK_PACKAGE_VENDOR "Genci Berisha")
 set(CPACK_PACKAGE_CONTACT "me@genciberisha.dev")
-set(CPACK_PACKAGE_DESCRIPTION "Libzero - testing liv")
+set(CPACK_PACKAGE_DESCRIPTION "Libzero - testing lib")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/neg-c/workflow_playground")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
@@ -36,11 +36,5 @@ else()
   set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
   set(CPACK_RPM_PACKAGE_REQUIRES "glibc >= 2.17")
 endif()
-
-# Component-based installation
-set(CPACK_COMPONENTS_ALL libraries headers documentation)
-set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Libraries")
-set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers")
-set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "Documentation")
 
 include(CPack)
