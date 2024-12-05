@@ -34,6 +34,7 @@ else()
   set(CPACK_RPM_PACKAGE_LICENSE "MIT")
   set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
   set(CPACK_RPM_PACKAGE_ARCHITECTURE "amd64")
+  set(CPACK_RPM_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-linux-amd64")
   set(CPACK_RPM_PACKAGE_REQUIRES "glibc >= 2.17")
 endif()
 
