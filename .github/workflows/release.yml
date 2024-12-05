@@ -20,7 +20,10 @@ jobs:
       
       - name: Get version from tag
         id: get_version
-        run: echo "version=${env:GITHUB_REF_NAME.substring(1)}" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v',''
+          "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
@@ -34,7 +37,7 @@ jobs:
           VCPKG_ROOT: C:\vcpkg
 
       - name: Build
-        run: cmake --build build/${{ matrix.preset }} --config Release
+        run: cmake --build build/${{ matrix.preset }}
 
       - name: Package
         run: |
@@ -58,6 +61,7 @@ jobs:
         include:
           - compiler: gcc
             version: 13
+            preset: unixlike-gcc-release
     steps:
       - uses: actions/checkout@v4
 
@@ -82,14 +86,14 @@ jobs:
           echo "VCPKG_ROOT=~/vcpkg" >> $GITHUB_ENV
 
       - name: Configure CMake
-        run: cmake --preset unixlike-${{ matrix.compiler }}-release
+        run: cmake --preset ${{ matrix.preset }}
 
       - name: Build
-        run: cmake --build build/unixlike-${{ matrix.compiler }}-release --config Release
+        run: cmake --build build/${{ matrix.preset }}
 
       - name: Package
         run: |
-          cd build/unixlike-${{ matrix.compiler }}-release
+          cd build/${{ matrix.preset }}
           cpack -G DEB
           cpack -G RPM
           cpack -G TGZ
@@ -99,9 +103,9 @@ jobs:
         with:
           name: linux-packages
           path: |
-            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.deb
-            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.rpm
-            ./build/unixlike-${{ matrix.compiler }}-release/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz
+            ./build/${{ matrix.preset }}/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.deb
+            ./build/${{ matrix.preset }}/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.rpm
+            ./build/${{ matrix.preset }}/libzero-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz
 
   create-and-upload:
     needs: [build-windows, build-linux]
