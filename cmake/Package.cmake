@@ -33,9 +33,18 @@ else()
   # RPM specific
   set(CPACK_RPM_PACKAGE_LICENSE "MIT")
   set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
-  set(CPACK_RPM_PACKAGE_ARCHITECTURE "amd64")
-  set(CPACK_RPM_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-linux-amd64")
+  set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
   set(CPACK_RPM_PACKAGE_REQUIRES "glibc >= 2.17")
+  
+  # Prevent RPM from generating debug/source packages
+  set(CPACK_RPM_BUILD_SOURCE_DIRS_PREFIX "")
+  set(CPACK_RPM_DEBUGINFO_PACKAGE OFF)
+  set(CPACK_RPM_RELOCATION_PATHS "")
+  
+  # Force consistent naming for all package types
+  set(CPACK_RPM_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.rpm")
+  set(CPACK_DEBIAN_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.deb")
+  set(CPACK_ARCHIVE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
 endif()
 
 include(CPack)
