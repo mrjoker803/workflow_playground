@@ -5,9 +5,23 @@ on:
 
 jobs:
   clang-tidy-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
+      - name: Install basic dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git curl wget pkg-config
+
+      - name: Setup vcpkg
+        run: |
+          if [ ! -d ~/vcpkg ]; then
+            git clone https://github.com/microsoft/vcpkg.git ~/vcpkg
+            ~/vcpkg/bootstrap-vcpkg.sh
+          fi
+          ~/vcpkg/vcpkg integrate install
+          echo "VCPKG_ROOT=~/vcpkg" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
