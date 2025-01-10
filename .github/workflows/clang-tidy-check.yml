@@ -26,10 +26,10 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: ZedThree/clang-tidy-review@v0.14.0
+      - uses: ZedThree/clang-tidy-review@v0.20.1
         with:
           source: '.'
           build_dir: 'build/unixlike-gcc-debug'
           cmake_args: '--preset unixlike-gcc-debug'
           split_worflow: true
-      - uses: ZedThree/clang-tidy-review/upload@v0.14.0
+      - uses: ZedThree/clang-tidy-review/upload@v0.20.1
