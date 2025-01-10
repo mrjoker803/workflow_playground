@@ -1,0 +1,19 @@
+name: clang-tidy
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  clang-tidy-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: ZehMatt/clang-tidy-annotations@v1.1.1
+        with:
+          source: '.'
+          build_dir: 'build/unixlike-gcc-debug'
+          cmake_args: '--preset unixlike-gcc-debug'
