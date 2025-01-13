@@ -1,7 +1,7 @@
-name: clang-tidy-review
+name: clang-tidy
 on:
   pull_request_target:
-    types: [opened]
+    types: [opened, synchronize, reopened]
 
 jobs:
   clang-tidy-check:
@@ -26,10 +26,10 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: ZedThree/clang-tidy-review@v0.20.1
+      - uses: ZehMatt/clang-tidy-annotations@v1.1.1
         with:
           source: '.'
           build_dir: 'build/unixlike-gcc-debug'
           cmake_args: '--preset unixlike-gcc-debug'
-          split_worflow: true
-      - uses: ZedThree/clang-tidy-review/upload@v0.20.1
+
+
